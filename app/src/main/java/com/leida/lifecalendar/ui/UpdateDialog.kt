@@ -259,13 +259,16 @@ private fun messageFor(error: UpdateError): String = when (error) {
 }
 
 /**
- * The release body as the dialog should show it: only the hand-written part above GitHub's
- * auto-generated `## What's Changed` section, which is a wall of commit links no one reads on a
- * phone. Null when there is nothing worth showing.
+ * The release body as the dialog should show it: only the hand-written part above whatever GitHub
+ * auto-generated below it (`## What's Changed`, `**Full Changelog**`) — a wall of commit links no
+ * one reads on a phone. Null when there is nothing worth showing.
  */
 private fun highlights(body: String?): String? = body
     ?.lineSequence()
-    ?.takeWhile { !it.trimStart().startsWith("##") }
+    ?.takeWhile { line ->
+        val t = line.trimStart()
+        !t.startsWith("##") && !t.startsWith("**Full Changelog**")
+    }
     ?.joinToString("\n")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
