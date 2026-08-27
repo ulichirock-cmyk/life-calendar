@@ -48,6 +48,9 @@ private const val SPAN_MAX = 100f
 fun SettingsScreen(
     settings: Settings,
     scrollState: ScrollState,
+    versionName: String,
+    checkingUpdate: Boolean,
+    onCheckUpdate: () -> Unit,
     onBirth: (LocalDate) -> Unit,
     onSpan: (Int) -> Unit,
     onToggleStages: () -> Unit,
@@ -126,6 +129,25 @@ fun SettingsScreen(
             ToggleRow("按阶段区分年柱底色", settings.showStages, onToggleStages)
             Box(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
             ToggleRow("每日一句提醒", settings.showQuote, onToggleQuote)
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Card(Modifier.fillMaxWidth(), padding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onCheckUpdate)
+                    .padding(vertical = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("检查更新", style = sans(15.0, Bone))
+                Text(
+                    if (checkingUpdate) "检查中…" else "v" + versionName,
+                    style = sans(13.0, Stone),
+                )
+            }
         }
 
         Spacer(Modifier.height(24.dp))

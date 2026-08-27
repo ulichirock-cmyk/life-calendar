@@ -52,7 +52,15 @@ class Store(context: Context) {
         prefs.edit().putString(KEY_MILESTONES, arr.toString()).apply()
     }
 
+    /** Epoch millis of the last update check, so a cold start checks at most once a day. */
+    fun lastUpdateCheck(): Long = prefs.getLong(KEY_LAST_UPDATE_CHECK, 0L)
+
+    fun saveLastUpdateCheck(millis: Long) {
+        prefs.edit().putLong(KEY_LAST_UPDATE_CHECK, millis).apply()
+    }
+
     private companion object {
+        const val KEY_LAST_UPDATE_CHECK = "last_update_check"
         const val KEY_BIRTH = "birth"
         const val KEY_SPAN = "span"
         const val KEY_STAGES = "show_stages"

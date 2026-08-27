@@ -57,6 +57,7 @@ import com.leida.lifecalendar.ui.Sand
 import com.leida.lifecalendar.ui.SettingsScreen
 import com.leida.lifecalendar.ui.Stone
 import com.leida.lifecalendar.ui.Surface
+import com.leida.lifecalendar.ui.UpdateDialog
 import com.leida.lifecalendar.ui.YearSheet
 import com.leida.lifecalendar.ui.sans
 import com.leida.lifecalendar.ui.serif
@@ -79,7 +80,10 @@ private enum class Tab(val label: String) { Life("人生"), Milestones("里程�
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun App(vm: LifeViewModel = viewModel()) {
+private fun App(
+    vm: LifeViewModel = viewModel(),
+    updateVm: UpdateViewModel = viewModel(),
+) {
     val settings = vm.settings
     val milestones = vm.milestones
     val calc = remember(settings) { LifeCalc(settings) }
@@ -118,6 +122,9 @@ private fun App(vm: LifeViewModel = viewModel()) {
             }
         }
     }
+
+    // Throttled to once a day inside the view model, and silent unless it finds something.
+    LaunchedEffect(Unit) { updateVm.checkOnLaunch() }
 
     LaunchedEffect(toastSeq) {
         if (toast != null) {
@@ -182,6 +189,9 @@ private fun App(vm: LifeViewModel = viewModel()) {
                     Tab.Settings -> SettingsScreen(
                         settings = settings,
                         scrollState = setScroll,
+                        versionName = updateVm.currentVersionName,
+                        checkingUpdate = updateVm.checkingManually,
+                        onCheckUpdate = updateVm::checkManually,
                         onBirth = { vm.setBirth(it); selectedYear = null },
                         onSpan = { vm.setSpan(it); selectedYear = null },
                         onToggleStages = vm::toggleStages,
@@ -246,6 +256,8 @@ private fun App(vm: LifeViewModel = viewModel()) {
             }
         }
     }
+
+    UpdateDialog(updateVm)
 }
 
 @Composable

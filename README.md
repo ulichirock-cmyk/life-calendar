@@ -35,17 +35,59 @@ adb shell am start -n com.leida.lifecalendar/.MainActivity
 app/src/main/java/com/leida/lifecalendar/
   MainActivity.kt        root shell — header, tab bar, year sheet, toast
   LifeViewModel.kt       settings + milestones, persisted on every change
+  UpdateViewModel.kt     the updater state machine — check, download, hand off to the installer
   data/
     Model.kt             LifeCalc — the prototype's arithmetic, ported one-for-one
     Store.kt             SharedPreferences persistence
+    update/
+      UpdateVersion.kt   tag-vs-BuildConfig version comparison (semver-ish, pure Kotlin)
+      UpdateModels.kt    UpdateState / UpdateError
+      UpdateService.kt   GitHub Releases lookup + resumable APK download
+      ApkInstaller.kt    FileProvider handoff, and why an install would be refused
   ui/
     Theme.kt             design tokens (colours, type scale) from the .dc.html
     LifeScreen.kt        年柱 grid
     MilestonesScreen.kt  里程碑 list
-    SettingsScreen.kt    设置 — birth date, span, switches
+    SettingsScreen.kt    设置 — birth date, span, switches, 检查更新
     YearSheet.kt         the bottom sheet a pillar opens into
+    UpdateDialog.kt      the updater's only screen
     Common.kt            card + pill switch
 ```
+
+## Releasing
+
+`.github/workflows/android-release.yml` builds a signed release APK and publishes it to GitHub
+Releases. Two ways to fire it:
+
+* **Tag** — `git tag v1.1.0 && git push origin v1.1.0`
+* **Actions → Android Release → Run workflow** on `main` — derives the tag from `versionName` in
+  `app/build.gradle.kts`, so the tag can never disagree with the `BuildConfig.VERSION_NAME` inside
+  the APK. The optional *release notes* input is what the in-app update dialog shows.
+
+Bump **both** `versionName` and `versionCode` in `app/build.gradle.kts` before releasing — Android
+compares `versionCode` and refuses to install anything lower.
+
+Signing secrets live on the repo (`SIGNING_KEYSTORE_BASE64`, `SIGNING_KEYSTORE_PASSWORD`,
+`SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`). The keystore itself is **not** in this repo and must
+be backed up somewhere durable: lose it and every future update fails to install, because Android
+never replaces an app with one signed by a different key.
+
+## In-app updates
+
+On a cold start — at most once every 24h — the app asks
+`GET /repos/<owner>/<repo>/releases/latest` whether there is a newer tag than its own
+`VERSION_NAME`. If there is, a dialog offers the download; 设置 → 检查更新 does the same check on
+demand and always reports the outcome. The repo is public, so the request is anonymous and nothing
+secret is baked into the APK.
+
+The download resumes across attempts (`Range`), verifies the finished size against the release
+metadata, and hands the APK to the system installer through a `FileProvider`. There is no silent
+self-update on Android: the user still confirms in the system installer, and the app needs the
+per-app "install unknown apps" permission, which the dialog links to when it is missing.
+
+Debug builds carry `applicationIdSuffix = ".debug"` so they install alongside a release build
+instead of occupying its slot — without that, a release APK can never replace a locally installed
+debug one (different signing keys, and Android refuses the swap outright).
 
 ## Notes on fidelity
 
