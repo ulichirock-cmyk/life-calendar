@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +41,7 @@ import com.leida.lifecalendar.data.Milestone
 import com.leida.lifecalendar.data.byYear
 import kotlin.math.min
 
-private const val COLUMNS = 8
+private const val COLUMNS = 10
 private const val APPEAR_MS = 940f
 private const val APPEAR_RUN = 500f
 
@@ -95,7 +93,7 @@ fun LifeScreen(
 
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             (0 until calc.span).chunked(COLUMNS).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     row.forEach { year ->
                         Pillar(
                             year = year,
@@ -115,9 +113,6 @@ fun LifeScreen(
                 }
             }
         }
-
-        Spacer(Modifier.height(26.dp))
-        Legend()
 
         Spacer(Modifier.height(26.dp))
         Card(Modifier.fillMaxWidth()) {
@@ -214,34 +209,5 @@ private fun Pillar(
             textAlign = TextAlign.Center,
             maxLines = 1,
         )
-    }
-}
-
-@Composable
-private fun Legend() {
-    Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-        LegendItem("童年 0–18", StageTrack[0], border = true)
-        LegendItem("工作 18–60", Bone.copy(alpha = 0.18f))
-        LegendItem("此刻", Clay)
-    }
-}
-
-@Composable
-private fun LegendItem(name: String, swatch: Color, border: Boolean = false) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-        val shape = RoundedCornerShape(2.dp)
-        Box(
-            Modifier
-                .size(12.dp, 6.dp)
-                .background(swatch, shape)
-                .then(
-                    if (border) Modifier.border(1.dp, Bone.copy(alpha = 0.14f), shape)
-                    else Modifier,
-                ),
-        )
-        Text(name, style = sans(11.5, Sand))
     }
 }
